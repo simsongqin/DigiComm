@@ -1,4 +1,4 @@
-% Phase 3: Basic error control coding to improve the performance
+ % Phase 3: Basic error control coding to improve the performance
 
 clear all; close all; clc; 
 
@@ -10,10 +10,10 @@ nBits = 1024;                                   % data bits
 SNRdb = -15:1:15;                               % SNR in db
 SNR = (10.^(SNRdb/10));                         % convert SNR from db to dec
 samplePeriod = fs/bbDataRate;
-encoded_nBits = nBits/4*7;                      % Data bits for Hamming Code (7,4)
+encoded_nBits = nBits/4*7;                      % Data bits for linear Code (7,4) 
 
 sigLen = fs*nBits/bbDataRate +1;                % signal length
-sigLen_encoded = fs*encoded_nBits/bbDataRate +1; % Encoded signal lenght
+sigLen_encoded = fs*encoded_nBits/bbDataRate +1; % Encoded signal length
 amp = 2;                                        % amplitude
 t = 0: 1/fs : nBits/bbDataRate;                 % time intervals --not encoded
 t_encoded = 0: 1/fs : encoded_nBits/bbDataRate;  % time intervals --encoded
@@ -27,24 +27,27 @@ carrier_encoded = amp .* cos(2*pi*fc*t_encoded);      %For Encoded Carrier
 
 
 % create arrays to store Bit Error Rates BER
-OOKerrorArr = zeros(1,length(SNR));              aveOOKerror = 0;
-encoded_OOKerrorArr = zeros(1,length(SNR));      encoded_aveOOKerror = 0;
-encoded_BPSKerrorArr = zeros(1,length(SNR));     encoded_aveBFSKerror = 0;
-encoded_BFSKerrorArr = zeros(1,length(SNR));     encoded_aveBPSKerror = 0;   
+OOKerrorArr = zeros(1,length(SNR));             
+encoded_OOKerrorArr = zeros(1,length(SNR));      
+encoded_BPSKerrorArr = zeros(1,length(SNR));     
+encoded_BFSKerrorArr = zeros(1,length(SNR));       
 
 runCycles = 20;
 
 plotSNRdb = -15;                                          % change in multiple of 5 to match; for plotting
 
 for i = 1 : length(SNR)                                 % loop for diff SNR values
-        totalOOKerror = 0;
-        encoded_totalOOKerror = 0;
-        encoded_totalBPSKerror = 0;
-        encoded_totalBFSKerror = 0;
+        aveOOKerror = 0;
+        encoded_aveOOKerror = 0;
+        encoded_aveBFSKerror = 0;
+        encoded_aveBPSKerror = 0;   
 
     for j = 1 : runCycles                               % loop to cal ave error rate over runCycles
         data = round(rand(1,nBits));                    % data Gen
-        hamming_sig = encode (data,7,4,'hamming/binary'); %hamming data
+        pol = cyclpoly(7,4);
+        parmat = cyclgen(7,pol);
+        genmat = gen2par(parmat);                       
+        linear_sig = encode(data,7,4,'linear/binary', genmat); %linear data
         % signal Gen
         sig = zeros(1,sigLen);
         sig_encoded = zeros(1,sigLen_encoded);
@@ -52,7 +55,7 @@ for i = 1 : length(SNR)                                 % loop for diff SNR valu
             sig(k) = data(ceil(k*bbDataRate/fs));
         end
         for k = 1 : sigLen_encoded - 1
-            sig_encoded(k) = hamming_sig(ceil(k*bbDataRate/fs));
+            sig_encoded(k) = linear_sig(ceil(k*bbDataRate/fs));
         end
         sig(sigLen) = sig(sigLen-1);
         sig_encoded(sigLen_encoded) = sig_encoded(sigLen_encoded - 1);
@@ -85,8 +88,8 @@ for i = 1 : length(SNR)                                 % loop for diff SNR valu
         OOK = samplingANDdecision(OOKdemod, samplePeriod, nBits, amp/2);
         encoded_OOK = samplingANDdecision(encoded_OOKdemod, samplePeriod, encoded_nBits, amp/2);
         
-            %decoding Hamming Code
-        OOK_decoded = decode(encoded_OOK,7,4,'hamming/binary');
+            %decoding linear Code
+        OOK_decoded = decode(encoded_OOK,7,4,'linear/binary', genmat);
 
 
 
@@ -110,8 +113,8 @@ for i = 1 : length(SNR)                                 % loop for diff SNR valu
             % sampling and decision logic
         encoded_BPSK = samplingANDdecision(encoded_BPSKdemod, samplePeriod, encoded_nBits, 0);
 
-            %decoding Hamming Code
-        BPSK_decoded = decode(encoded_BPSK,7,4,'hamming/binary');
+            %decoding linear Code
+        BPSK_decoded = decode(encoded_BPSK,7,4,'linear/binary', genmat);
         
         %***** Binary Frequency Shift Keying *****
             % modulation
@@ -137,48 +140,33 @@ for i = 1 : length(SNR)                                 % loop for diff SNR valu
             % sampling and decision logic
         encoded_BFSK = samplingANDdecision(encoded_BFSKdemod, samplePeriod, encoded_nBits, 0);
 
-             %decoding Hamming Code
-        BFSK_decoded = decode(encoded_BFSK,7,4,'hamming/binary');
+             %decoding linear Code
+        BFSK_decoded = decode(encoded_BFSK,7,4,'linear/binary', genmat);
         
         %Bit error
-        encoded_OOKerror = 0; encoded_BPSKerror = 0; encoded_BFSKerror = 0; OOKerror = 0;
-        for l = 1 : nBits -1
-            if (OOK_decoded(l) ~= data(l))
-                encoded_OOKerror = encoded_OOKerror + 1;
-            end
-            if (BPSK_decoded(l) ~= data(l))
-                encoded_BPSKerror = encoded_BPSKerror + 1;
-            end
-            if (BFSK_decoded(l) ~= data(l))
-                encoded_BFSKerror = encoded_BFSKerror + 1;
-            end
-            if (OOK(l) ~= data(l))
-                OOKerror = OOKerror + 1;
-            end
-        end
-
-        totalOOKerror = totalOOKerror + OOKerror;
-        encoded_totalOOKerror = encoded_totalOOKerror + encoded_OOKerror;
-        encoded_totalBPSKerror = encoded_totalBPSKerror + encoded_BPSKerror;
-        encoded_totalBFSKerror = encoded_totalBFSKerror + encoded_BFSKerror;
+        encoded_OOKerror =  biterr(OOK_decoded, data) ./encoded_nBits;
+        OOKerror = biterr(OOK, data) ./nBits;
+        encoded_BPSKerror = biterr(BPSK_decoded, data) ./encoded_nBits;
+        encoded_BFSKerror = biterr(BFSK_decoded, data) ./encoded_nBits;
+    
+        encoded_aveOOKerror = encoded_OOKerror + encoded_aveOOKerror;
+        aveOOKerror = OOKerror + aveOOKerror ;
+        encoded_aveBPSKerror = encoded_BPSKerror + encoded_aveBPSKerror;
+        encoded_aveBFSKerror = encoded_BFSKerror + encoded_aveBFSKerror;
 
     end     % end for runCycles loop
-    
-    aveOOKerror = totalOOKerror/runCycles;
-    encoded_aveOOKerror = encoded_totalOOKerror/runCycles;
-    encoded_aveBPSKerror = encoded_totalBPSKerror/runCycles;
-    encoded_aveBFSKerror = encoded_totalBFSKerror/runCycles;
-    OOKerrorArr(i) = aveOOKerror/nBits;
-    encoded_OOKerrorArr(i) = encoded_aveOOKerror/nBits;
-    encoded_BPSKerrorArr(i) = encoded_aveBPSKerror/nBits;
-    encoded_BFSKerrorArr(i) = encoded_aveBFSKerror/nBits;
+ 
+    OOKerrorArr(i) = aveOOKerror/runCycles;
+    encoded_OOKerrorArr(i) = encoded_aveOOKerror/runCycles;
+    encoded_BPSKerrorArr(i) = encoded_aveBPSKerror/runCycles;
+    encoded_BFSKerrorArr(i) = encoded_aveBFSKerror/runCycles;
     
     % store variable for specified SNR value for plotting
     if (SNRdb(i) == plotSNRdb)
         dataPlot = data;
-        hammingData = hamming_sig;
+        linearData = linear_sig;
         sigPlot = sig;
-        hammingsigPlot = sig_encoded;
+        linearsigPlot = sig_encoded;
         modOOKplot = encoded_OOKsig;
         recOOKplot = encoded_OOKreceived;
         demodOOKplot = encoded_OOK;
@@ -205,7 +193,7 @@ p2 = semilogy (SNRdb,OOKerrorArr,'k-*'); hold;hold;
 p3 = semilogy (SNRdb,encoded_BPSKerrorArr,'g-*'); hold;hold;
 p4 = semilogy (SNRdb,encoded_BFSKerrorArr,'b-*'); hold;
 title('Bit Error Rate for different SNR');
-legend([p1(1) p2(1) p3(1) p4(1)], {'Hamming/OOK', 'Unencoded/OOK', 'Hamming/BPSK', 'Hamming/BFSK'}); ylabel('BER'); xlabel('SNR(dB)');
+legend([p1(1) p2(1) p3(1) p4(1)], {'Linear/OOK', 'Unencoded/OOK', 'Linear/BPSK', 'Linear/BFSK'}); ylabel('BER'); xlabel('SNR(dB)');
 xlim([0 50]);
 
 % data plot
@@ -216,13 +204,13 @@ title('Data waveform');
 ylim([-0.1 1.1]); xlim([0 length(data)]);
 
 subplot(212);
-plot(hammingData);
-title('Hamming Encoded Data waveform');
-ylim([-0.1 1.1]); xlim([0 length(hamming_sig)]);
+plot(linearData);
+title('Linear Encoded Data waveform');
+ylim([-0.1 1.1]); xlim([0 length(linear_sig)]);
 
 % modulated signals plot
 figure (3);
-subplot(411); plot(hammingsigPlot); title('Hamming Encoded Data signal'); ylim([-0.09 1.1]); xlim([0 1800]);
+subplot(411); plot(linearsigPlot); title('Linear Encoded Data signal'); ylim([-0.09 1.1]); xlim([0 1800]);
 subplot(412); plot(modOOKplot); title('OOK modulated signal'); ylim([-2.1 2.1]); xlim([0 1800]); 
 subplot(413); plot(modBPSKplot); title('BPSK modulated signal'); ylim([-2.1 2.1]); xlim([0 1800]); 
 subplot(414); plot(modBFSKplot); title('BFSK modulated signal');  ylim([-2.1 2.1]); xlim([0 1800]);

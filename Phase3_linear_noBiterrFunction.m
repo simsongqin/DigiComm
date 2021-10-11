@@ -10,7 +10,7 @@ nBits = 1024;                                   % data bits
 SNRdb = -15:1:15;                               % SNR in db
 SNR = (10.^(SNRdb/10));                         % convert SNR from db to dec
 samplePeriod = fs/bbDataRate;
-encoded_nBits = nBits/4*7;                      % Data bits for Hamming Code (7,4)
+encoded_nBits = nBits/4*7;                      % Data bits for linear Code (7,4)
 
 sigLen = fs*nBits/bbDataRate +1;                % signal length
 sigLen_encoded = fs*encoded_nBits/bbDataRate +1; % Encoded signal lenght
@@ -44,7 +44,10 @@ for i = 1 : length(SNR)                                 % loop for diff SNR valu
 
     for j = 1 : runCycles                               % loop to cal ave error rate over runCycles
         data = round(rand(1,nBits));                    % data Gen
-        hamming_sig = encode (data,7,4,'hamming/binary'); %hamming data
+        pol = cyclpoly(7,4);
+        parmat = cyclgen(7,pol);
+        genmat = gen2par(parmat);                       
+        linear_sig = encode(data,7,4,'linear/binary',genmat); %linear data
         % signal Gen
         sig = zeros(1,sigLen);
         sig_encoded = zeros(1,sigLen_encoded);
@@ -52,7 +55,7 @@ for i = 1 : length(SNR)                                 % loop for diff SNR valu
             sig(k) = data(ceil(k*bbDataRate/fs));
         end
         for k = 1 : sigLen_encoded - 1
-            sig_encoded(k) = hamming_sig(ceil(k*bbDataRate/fs));
+            sig_encoded(k) = linear_sig(ceil(k*bbDataRate/fs));
         end
         sig(sigLen) = sig(sigLen-1);
         sig_encoded(sigLen_encoded) = sig_encoded(sigLen_encoded - 1);
@@ -85,8 +88,8 @@ for i = 1 : length(SNR)                                 % loop for diff SNR valu
         OOK = samplingANDdecision(OOKdemod, samplePeriod, nBits, amp/2);
         encoded_OOK = samplingANDdecision(encoded_OOKdemod, samplePeriod, encoded_nBits, amp/2);
         
-            %decoding Hamming Code
-        OOK_decoded = decode(encoded_OOK,7,4,'hamming/binary');
+            %decoding linear Code
+        OOK_decoded = decode(encoded_OOK,7,4,'linear/binary',genmat);
 
 
 
@@ -110,8 +113,8 @@ for i = 1 : length(SNR)                                 % loop for diff SNR valu
             % sampling and decision logic
         encoded_BPSK = samplingANDdecision(encoded_BPSKdemod, samplePeriod, encoded_nBits, 0);
 
-            %decoding Hamming Code
-        BPSK_decoded = decode(encoded_BPSK,7,4,'hamming/binary');
+            %decoding linear Code
+        BPSK_decoded = decode(encoded_BPSK,7,4,'linear/binary',genmat);
         
         %***** Binary Frequency Shift Keying *****
             % modulation
@@ -137,8 +140,8 @@ for i = 1 : length(SNR)                                 % loop for diff SNR valu
             % sampling and decision logic
         encoded_BFSK = samplingANDdecision(encoded_BFSKdemod, samplePeriod, encoded_nBits, 0);
 
-             %decoding Hamming Code
-        BFSK_decoded = decode(encoded_BFSK,7,4,'hamming/binary');
+             %decoding linear Code
+        BFSK_decoded = decode(encoded_BFSK,7,4,'linear/binary',genmat);
         
         %Bit error
         encoded_OOKerror = 0; encoded_BPSKerror = 0; encoded_BFSKerror = 0; OOKerror = 0;
@@ -176,9 +179,9 @@ for i = 1 : length(SNR)                                 % loop for diff SNR valu
     % store variable for specified SNR value for plotting
     if (SNRdb(i) == plotSNRdb)
         dataPlot = data;
-        hammingData = hamming_sig;
+        linearData = linear_sig;
         sigPlot = sig;
-        hammingsigPlot = sig_encoded;
+        linearsigPlot = sig_encoded;
         modOOKplot = encoded_OOKsig;
         recOOKplot = encoded_OOKreceived;
         demodOOKplot = encoded_OOK;
@@ -205,7 +208,7 @@ p2 = semilogy (SNRdb,OOKerrorArr,'k-*'); hold;hold;
 p3 = semilogy (SNRdb,encoded_BPSKerrorArr,'g-*'); hold;hold;
 p4 = semilogy (SNRdb,encoded_BFSKerrorArr,'b-*'); hold;
 title('Bit Error Rate for different SNR');
-legend([p1(1) p2(1) p3(1) p4(1)], {'Hamming/OOK', 'Unencoded/OOK', 'Hamming/BPSK', 'Hamming/BFSK'}); ylabel('BER'); xlabel('SNR(dB)');
+legend([p1(1) p2(1) p3(1) p4(1)], {'Linear/OOK', 'Unencoded/OOK', 'Linear/BPSK', 'Linear/BFSK'}); ylabel('BER'); xlabel('SNR(dB)');
 xlim([0 50]);
 
 % data plot
@@ -216,13 +219,13 @@ title('Data waveform');
 ylim([-0.1 1.1]); xlim([0 length(data)]);
 
 subplot(212);
-plot(hammingData);
-title('Hamming Encoded Data waveform');
-ylim([-0.1 1.1]); xlim([0 length(hamming_sig)]);
+plot(linearData);
+title('Linear Encoded Data waveform');
+ylim([-0.1 1.1]); xlim([0 length(linear_sig)]);
 
 % modulated signals plot
 figure (3);
-subplot(411); plot(hammingsigPlot); title('Hamming Encoded Data signal'); ylim([-0.09 1.1]); xlim([0 1800]);
+subplot(411); plot(linearsigPlot); title('Linear Encoded Data signal'); ylim([-0.09 1.1]); xlim([0 1800]);
 subplot(412); plot(modOOKplot); title('OOK modulated signal'); ylim([-2.1 2.1]); xlim([0 1800]); 
 subplot(413); plot(modBPSKplot); title('BPSK modulated signal'); ylim([-2.1 2.1]); xlim([0 1800]); 
 subplot(414); plot(modBFSKplot); title('BFSK modulated signal');  ylim([-2.1 2.1]); xlim([0 1800]);

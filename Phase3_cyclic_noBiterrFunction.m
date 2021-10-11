@@ -32,7 +32,7 @@ encoded_OOKerrorArr = zeros(1,length(SNR));      encoded_aveOOKerror = 0;
 encoded_BPSKerrorArr = zeros(1,length(SNR));     encoded_aveBFSKerror = 0;
 encoded_BFSKerrorArr = zeros(1,length(SNR));     encoded_aveBPSKerror = 0;   
 
-runCycles = 5;
+runCycles = 20;
 
 plotSNRdb = -15;                                          % change in multiple of 5 to match; for plotting
 
