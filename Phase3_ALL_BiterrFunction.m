@@ -63,7 +63,7 @@ for i = 1 : length(SNR)                                 % loop for diff SNR valu
         pol = cyclpoly(7,4);
         parmat = cyclgen(7,pol);
         genmat = gen2par(parmat);
-        linear_sig = encode(data,7,4,'linear/binary', genmat); %linear data
+        linear_sig = encode (data,7,4,'linear/binary', genmat); %linear data
         % signal Gen
         sig = zeros(1,sigLen);
         sig_linear = zeros(1,sigLen_encoded);
@@ -100,6 +100,7 @@ for i = 1 : length(SNR)                                 % loop for diff SNR valu
 
         OOKnoisePwr = OOKsigPwr ./ SNR(i);
         OOKnoise = sqrt(OOKnoisePwr/2) .* randn(1,sigLen); %%%% align with Phase1
+        
         linear_OOKnoisePwr = linear_OOKsigPwr ./ SNR(i);
         linear_OOKnoise = sqrt(linear_OOKnoisePwr/2) .* randn(1,sigLen_encoded);
 
@@ -268,27 +269,27 @@ for i = 1 : length(SNR)                                 % loop for diff SNR valu
         BFSK_cyclic = decode(cyclic_BFSK,7,4,'cyclic/binary');
 
         %Bit error
-        linear_OOKerror =  biterr(OOK_linear, data) ./linear_nBits;
+        linear_OOKerror =  biterr(OOK_linear, data) ./encoded_nBits;
         OOKerror = biterr(OOK, data) ./nBits;
-        linear_BPSKerror = biterr(BPSK_linear, data) ./linear_nBits;
-        linear_BFSKerror = biterr(BFSK_linear, data) ./linear_nBits;
+        linear_BPSKerror = biterr(BPSK_linear, data) ./encoded_nBits;
+        linear_BFSKerror = biterr(BFSK_linear, data) ./encoded_nBits;
 
         linear_aveOOKerror = linear_OOKerror + linear_aveOOKerror;
         aveOOKerror = OOKerror + aveOOKerror ;
         linear_aveBPSKerror = linear_BPSKerror + linear_aveBPSKerror;
         linear_aveBFSKerror = linear_BFSKerror + linear_aveBFSKerror;
 
-        hamming_OOKerror =  biterr(OOK_hamming, data) ./hamming_nBits;
-        hamming_BPSKerror = biterr(BPSK_hamming, data) ./hamming_nBits;
-        hamming_BFSKerror = biterr(BFSK_hamming, data) ./hamming_nBits;
+        hamming_OOKerror =  biterr(OOK_hamming, data) ./encoded_nBits;
+        hamming_BPSKerror = biterr(BPSK_hamming, data) ./encoded_nBits;
+        hamming_BFSKerror = biterr(BFSK_hamming, data) ./encoded_nBits;
 
         hamming_aveOOKerror = hamming_OOKerror + hamming_aveOOKerror;
         hamming_aveBPSKerror = hamming_BPSKerror + hamming_aveBPSKerror;
         hamming_aveBFSKerror = hamming_BFSKerror + hamming_aveBFSKerror;
 
-        cyclic_OOKerror =  biterr(OOK_cyclic, data) ./cyclic_nBits;
-        cyclic_BPSKerror = biterr(BPSK_cyclic, data) ./cyclic_nBits;
-        cyclic_BFSKerror = biterr(BFSK_cyclic, data) ./cyclic_nBits;
+        cyclic_OOKerror =  biterr(OOK_cyclic, data) ./encoded_nBits;
+        cyclic_BPSKerror = biterr(BPSK_cyclic, data) ./encoded_nBits;
+        cyclic_BFSKerror = biterr(BFSK_cyclic, data) ./encoded_nBits;
 
         cyclic_aveOOKerror = cyclic_OOKerror + cyclic_aveOOKerror;
         cyclic_aveBPSKerror = cyclic_BPSKerror + cyclic_aveBPSKerror;
@@ -368,71 +369,19 @@ end     % end for SNR loop
 
 % error semilogy plot
 figure(1);
-p1 = semilogy (SNRdb,linear_OOKerrorArr); hold on;
-p2 = semilogy (SNRdb,OOKerrorArr); hold;hold;
-p3 = semilogy (SNRdb,linear_BPSKerrorArr,); hold;hold;
-p4 = semilogy (SNRdb,linear_BFSKerrorArr); hold;hold
-p5 = semilogy (SNRdb,hamming_OOKerrorArr); hold;hold
-p6 = semilogy (SNRdb,hamming_BPSKerrorArr); hold;hold
-p7 = semilogy (SNRdb,hamming_BFSKerrorArr); hold;hold
-p8 = semilogy (SNRdb,cyclic_OOKerrorArr); hold;hold
-p9 = semilogy (SNRdb,cyclic_BPSKerrorArr); hold;hold;
-p10 = semilogy (SNRdb,cyclic_BFSKerrorArr); hold;
+p1 = semilogy (SNRdb,linear_OOKerrorArr, 'r-*'); hold on;
+p2 = semilogy (SNRdb,OOKerrorArr, 'k-*'); hold;hold;
+p3 = semilogy (SNRdb,linear_BPSKerrorArr, 'g-*'); hold;hold;
+p4 = semilogy (SNRdb,linear_BFSKerrorArr, 'b-*'); hold;hold
+p5 = semilogy (SNRdb,hamming_OOKerrorArr, 'g-*'); hold;hold
+p6 = semilogy (SNRdb,hamming_BPSKerrorArr, 'b-*'); hold;hold
+p7 = semilogy (SNRdb,hamming_BFSKerrorArr, 'r-*'); hold;hold
+p8 = semilogy (SNRdb,cyclic_OOKerrorArr, 'b-*'); hold;hold
+p9 = semilogy (SNRdb,cyclic_BPSKerrorArr, 'r-*'); hold;hold;
+p10 = semilogy (SNRdb,cyclic_BFSKerrorArr, 'g-*'); hold;
 title('Bit Error Rate for different SNR');
 legend([p1(1) p2(1) p3(1) p4(1) p5(1) p6(1) p7(1) p8(1) p9(1) p10(1)], {'Linear/OOK', 'Unencoded/OOK', 'Linear/BPSK', 'Linear/BFSK','Hamming/OOK', 'Hamming/BPSK', 'Hamming/BFSK', 'Cyclic/OOK', 'Cyclic/BPSK', 'Cyclic/BFSK'}); ylabel('BER'); xlabel('SNR(dB)');
 xlim([0 50]);
-
-%WAIT FIRST
-% data plot
-figure (2);
-subplot(211);
-plot(dataPlot);
-title('Data waveform');
-ylim([-0.1 1.1]); xlim([0 length(data)]);
-
-subplot(212);
-plot(cyclicData);
-title('Linear Encoded Data waveform');
-ylim([-0.1 1.1]); xlim([0 length(cyclic_sig)]);
-
-% modulated signals plot
-figure (3);
-subplot(411); plot(cyclicsigPlot); title('Linear Encoded Data signal'); ylim([-0.09 1.1]); xlim([0 1800]);
-subplot(412); plot(modOOKplot); title('OOK modulated signal'); ylim([-2.1 2.1]); xlim([0 1800]); 
-subplot(413); plot(modBPSKplot); title('BPSK modulated signal'); ylim([-2.1 2.1]); xlim([0 1800]); 
-subplot(414); plot(modBFSKplot); title('BFSK modulated signal');  ylim([-2.1 2.1]); xlim([0 1800]);
-
-% received signals plot
-figure (4);
-subplot(311); plot(recOOKplot); title(['OOK received signal at ' num2str(plotSNRdb) ' dB SNR']); xlim([0 1800]);
-subplot(312); plot(recBPSKplot); title(['BPSK received signal at ' num2str(plotSNRdb) ' dB SNR']); xlim([0 1800]);
-subplot(313); plot(recBFSKplot); title(['BFSK received signal at ' num2str(plotSNRdb) ' dB SNR']); xlim([0 1800]);
-
-% demodulated signals plot
-figure (5);
-subplot (311); plot(demodOOKplot); title('OOK demodulated signal'); xlim([0 1800]); ylim([-0.09 1.1]);
-subplot (312); plot(demodBPSKplot); title('BPSK demodulated signal'); xlim([0 1800]); ylim([-0.09 1.1]);
-subplot (313); plot(demodBFSKplot); title('BFSK demodulated signal'); xlim([0 1800]); ylim([-0.09 1.1]);
-
-% decoded signals plot
-figure (6);
-subplot (411); plot(dataPlot); title('Data waveform'); ylim([-0.09 1.1]); xlim([0 length(data)]);
-subplot (412); plot(decodeOOKplot);  title ('OOK decoded signal'); ylim([-0.1 1.1]); xlim([0 length(data)]); ylim([-0.09 1.1]);
-subplot (413); plot(decodeBPSKplot);  title ('BPSK decoded signal'); ylim([-0.1 1.1]); xlim([0 length(data)]); ylim([-0.09 1.1]);
-subplot (414); plot(decodeBFSKplot);  title ('BFSK decoded signal'); ylim([-0.1 1.1]); xlim([0 length(data)]); ylim([-0.09 1.1]);
-
-% spectogram of transmitted modulated signals 
-figure (7);
-subplot(311); spectrogram(modOOKplot); title('OOK modulated signal');
-subplot(312); spectrogram(modBPSKplot); title('BPSK modulated signal');
-subplot(313); spectrogram(modBFSKplot); title('BFSK modulated signal'); 
-
-% spectogram of received signals 
-figure (8);
-subplot(311); spectrogram(recOOKplot); title(['OOK received signal at ' num2str(plotSNRdb) ' dB SNR']); 
-subplot(312); spectrogram(recBPSKplot); title(['BPSK received signal at ' num2str(plotSNRdb) ' dB SNR']);
-subplot(313); spectrogram(recBFSKplot); title(['BFSK received signal at ' num2str(plotSNRdb) ' dB SNR']); 
-
 
 function [binary] = samplingANDdecision(x, samplePeriod, nBits, threshold)
     sampled = zeros(1, nBits);
