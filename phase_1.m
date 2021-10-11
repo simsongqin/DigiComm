@@ -11,6 +11,8 @@ SNR_dB = 0:1:50;
 SNR = convert_dB_to_dec(SNR_dB, type);
 
 noise_powers = signal_power ./ SNR;
+
+%generate our 1024 data bits
 data = generate_data(data_length);
 
 threshold = 0;
@@ -33,7 +35,7 @@ for i = 1:length(SNR)
 end
 
 % Calculate theoretical BER
-theory_rate = (1 / 2) * erfc(sqrt(SNR / 2));
+theory_rate = (1 / 2) * erfc(sqrt(SNR));
     
 %Graph and Plot the result           
 figure(1)
@@ -43,15 +45,15 @@ xlabel('SNR (dB)')
 title('BER vs SNR (dB) - Step Size: 1');
 hold on
 semilogy (SNR_dB, bit_errors,'bx', 'linewidth', 2);
-legend('Theoretical BER','Real BER');
 axis([0 50 1/(test_samples*data_length) 1]);
+legend('Theoretical BER','Real BER');
 hold off
 
 %Graph and Plot the result           
 figure(2)
+semilogy (SNR_dB(1:5:50), theory_rate(1:5:50),'r', 'linewidth', 1.5);
 ylabel('BER');
 xlabel('SNR (dB)')
-semilogy (SNR_dB(1:5:50), theory_rate(1:5:50),'r', 'linewidth', 1.5);
 title('BER vs SNR (dB) - Step Size: 5');
 hold on
 semilogy (SNR_dB(1:5:50), bit_errors(1:5:50),'bx', 'linewidth', 2);
