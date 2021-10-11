@@ -44,9 +44,9 @@ for i = 1 : length(SNR)                                 % loop for diff SNR valu
 
     for j = 1 : runCycles                               % loop to cal ave error rate over runCycles
         data = round(rand(1,nBits));                    % data Gen
-        genpoly = cyclpoly(7,4)
-        parmat = cyclgen(7,genpoly)
-        trt = syndtable(parmat)
+        genpoly = cyclpoly(7,4);
+        parmat = cyclgen(7,genpoly);
+        trt = syndtable(parmat);
         cyclic_sig = encode (data,7,4,'cyclic/binary',genpoly); %cyclic data
         % signal Gen
         sig = zeros(1,sigLen);
