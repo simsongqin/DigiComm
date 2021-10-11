@@ -44,7 +44,10 @@ for i = 1 : length(SNR)                                 % loop for diff SNR valu
 
     for j = 1 : runCycles                               % loop to cal ave error rate over runCycles
         data = round(rand(1,nBits));                    % data Gen
-        cyclic_sig = encode (data,7,4,'cyclic/binary'); %cyclic data
+        genpoly = cyclpoly(7,4)
+        parmat = cyclgen(7,genpoly)
+        trt = syndtable(parmat)
+        cyclic_sig = encode (data,7,4,'cyclic/binary',genpoly); %cyclic data
         % signal Gen
         sig = zeros(1,sigLen);
         sig_encoded = zeros(1,sigLen_encoded);
@@ -86,7 +89,7 @@ for i = 1 : length(SNR)                                 % loop for diff SNR valu
         encoded_OOK = samplingANDdecision(encoded_OOKdemod, samplePeriod, encoded_nBits, amp/2);
         
             %decoding Cyclic Code
-        OOK_decoded = decode(encoded_OOK,7,4,'cyclic/binary');
+        OOK_decoded = decode(encoded_OOK,7,4,'cyclic/binary',genpoly,trt);
 
 
 
@@ -111,7 +114,7 @@ for i = 1 : length(SNR)                                 % loop for diff SNR valu
         encoded_BPSK = samplingANDdecision(encoded_BPSKdemod, samplePeriod, encoded_nBits, 0);
 
             %decoding Cyclic Code
-        BPSK_decoded = decode(encoded_BPSK,7,4,'cyclic/binary');
+        BPSK_decoded = decode(encoded_BPSK,7,4,'cyclic/binary',genpoly,trt);
         
         %***** Binary Frequency Shift Keying *****
             % modulation
@@ -138,7 +141,7 @@ for i = 1 : length(SNR)                                 % loop for diff SNR valu
         encoded_BFSK = samplingANDdecision(encoded_BFSKdemod, samplePeriod, encoded_nBits, 0);
 
              %decoding Cyclic Code
-        BFSK_decoded = decode(encoded_BFSK,7,4,'cyclic/binary');
+        BFSK_decoded = decode(encoded_BFSK,7,4,'cyclic/binary',genpoly,trt);
         
         %Bit error
         encoded_OOKerror =  biterr(OOK_decoded, data) ./encoded_nBits;

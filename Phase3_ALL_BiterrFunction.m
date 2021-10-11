@@ -58,11 +58,14 @@ for i = 1 : length(SNR)                                 % loop for diff SNR valu
 
     for j = 1 : runCycles                               % loop to cal ave error rate over runCycles
         data = round(rand(1,nBits));                    % data Gen
-        cyclic_sig = encode (data,7,4,'cyclic/binary'); %cyclic data
+        genpoly = cyclpoly(7,4)
+        parmat1 = cyclgen(7,genpoly)
+        trt = syndtable(parmat1)
+        cyclic_sig = encode (data,7,4,'cyclic/binary',genpoly); %cyclic data
         hamming_sig = encode (data,7,4,'hamming/binary'); %hamming data
         pol = cyclpoly(7,4);
-        parmat = cyclgen(7,pol);
-        genmat = gen2par(parmat);
+        parmat2 = cyclgen(7,pol);
+        genmat = gen2par(parmat2);
         linear_sig = encode (data,7,4,'linear/binary', genmat); %linear data
         % signal Gen
         sig = zeros(1,sigLen);
@@ -132,6 +135,7 @@ for i = 1 : length(SNR)                                 % loop for diff SNR valu
 
             % sampling and decision logic
         OOK = samplingANDdecision(OOKdemod, samplePeriod, nBits, amp/2);
+
         linear_OOK = samplingANDdecision(linear_OOKdemod, samplePeriod, encoded_nBits, amp/2);
 
         hamming_OOK = samplingANDdecision(hamming_OOKdemod, samplePeriod, encoded_nBits, amp/2);
@@ -143,7 +147,7 @@ for i = 1 : length(SNR)                                 % loop for diff SNR valu
 
         OOK_hamming = decode(hamming_OOK,7,4,'hamming/binary');
 
-        OOK_cyclic = decode(cyclic_OOK,7,4,'cyclic/binary');
+        OOK_cyclic = decode(cyclic_OOK,7,4,'cyclic/binary',genpoly,trt);
 
 
         %***** Binary Phase Shift Keying (BPSK) *****
@@ -199,7 +203,7 @@ for i = 1 : length(SNR)                                 % loop for diff SNR valu
 
         BPSK_hamming = decode(hamming_BPSK,7,4,'hamming/binary');
 
-        BPSK_cyclic = decode(cyclic_BPSK,7,4,'cyclic/binary');
+        BPSK_cyclic = decode(cyclic_BPSK,7,4,'cyclic/binary',genpoly,trt);
 
         %***** Binary Frequency Shift Keying *****
             % modulation
@@ -266,7 +270,7 @@ for i = 1 : length(SNR)                                 % loop for diff SNR valu
 
         BFSK_hamming = decode(hamming_BFSK,7,4,'hamming/binary');
 
-        BFSK_cyclic = decode(cyclic_BFSK,7,4,'cyclic/binary');
+        BFSK_cyclic = decode(cyclic_BFSK,7,4,'cyclic/binary',genpoly,trt);
 
         %Bit error
         linear_OOKerror =  biterr(OOK_linear, data) ./encoded_nBits;
