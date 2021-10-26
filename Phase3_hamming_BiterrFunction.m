@@ -231,18 +231,6 @@ subplot (412); plot(decodeOOKplot);  title ('OOK decoded signal'); ylim([-0.1 1.
 subplot (413); plot(decodeBPSKplot);  title ('BPSK decoded signal'); ylim([-0.1 1.1]); xlim([0 length(data)]); ylim([-0.09 1.1]);
 subplot (414); plot(decodeBFSKplot);  title ('BFSK decoded signal'); ylim([-0.1 1.1]); xlim([0 length(data)]); ylim([-0.09 1.1]);
 
-% spectogram of transmitted modulated signals 
-figure (7);
-subplot(311); spectrogram(modOOKplot); title('OOK modulated signal');
-subplot(312); spectrogram(modBPSKplot); title('BPSK modulated signal');
-subplot(313); spectrogram(modBFSKplot); title('BFSK modulated signal'); 
-
-% spectogram of received signals 
-figure (8);
-subplot(311); spectrogram(recOOKplot); title(['OOK received signal at ' num2str(plotSNRdb) ' dB SNR']); 
-subplot(312); spectrogram(recBPSKplot); title(['BPSK received signal at ' num2str(plotSNRdb) ' dB SNR']);
-subplot(313); spectrogram(recBFSKplot); title(['BFSK received signal at ' num2str(plotSNRdb) ' dB SNR']); 
-
 
 function [binary] = samplingANDdecision(x, samplePeriod, nBits, threshold)
     sampled = zeros(1, nBits);
