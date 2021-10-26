@@ -1,10 +1,10 @@
 function [output_dec] = convert_dB_to_dec(input_dB, type)
-%convert_dB_to_dec Convert dB to decimal
-%   input_dB - input to be converted
-%   type - default to 'non_power'
+%convert dB to decimal
+%input_dB - input to be converted
+%type - default is 'non_power'
 
 if nargin == 1
-  type = 'non_power'; % default type to be 'non_power'
+  type = 'non_power'; 
 end
 
 if type == "power"

@@ -1,10 +1,9 @@
 clear all; close all; clc;
 
+%declare variables
 data_length = 1024;
 signal_power = 1;
 type = 'power';
-
-% SNR = 10log(S/N)
 
 SNR_dB = 0:1:50;
 
@@ -19,14 +18,15 @@ threshold = 0;
 test_samples = 20;
 bit_errors = [];
 
-for i = 1:length(SNR)
+for i = 1 : length(SNR)
     bit_errors(i) = 0;
-    for j = 1:test_samples
+    for j = 1 : test_samples
         noise = generate_noise(data_length, noise_powers(i));
         
         received_signal = data + noise;
         
         received_signal = 2*(received_signal >= threshold)-1;
+        
         error_signal = (received_signal~=data);
         
         bit_errors(i) = bit_errors(i) + mean(error_signal);
@@ -34,10 +34,15 @@ for i = 1:length(SNR)
     bit_errors(i) = bit_errors(i)/test_samples;
 end
 
-% Calculate theoretical BER
+%print noise mean, SD and variance
+disp(mean(noise))
+disp(std(noise))
+disp(var(noise))
+
+% calculate theoretical BER
 theory_rate = (1 / 2) * erfc(sqrt(SNR));
     
-%Graph and Plot the result           
+%plot the result           
 figure(1)
 semilogy (SNR_dB, theory_rate,'r', 'linewidth', 1.5);
 ylabel('BER');
@@ -49,7 +54,7 @@ axis([0 50 1/(test_samples*data_length) 1]);
 legend('Theoretical BER','Real BER');
 hold off
 
-%Graph and Plot the result           
+%plot the result           
 figure(2)
 semilogy (SNR_dB(1:5:50), theory_rate(1:5:50),'r', 'linewidth', 1.5);
 ylabel('BER');
