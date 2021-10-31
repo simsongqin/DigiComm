@@ -34,7 +34,7 @@ encoded_BFSKerrorArr = zeros(1,length(SNR));
 
 runCycles = 20;
 
-plotSNRdb = -15;                                          % change in multiple of 5 to match; for plotting
+plotSNRdb = 5;                                          % change in multiple of 5 to match; for plotting
 
 for i = 1 : length(SNR)                                 % loop for diff SNR values
         aveOOKerror = 0;
